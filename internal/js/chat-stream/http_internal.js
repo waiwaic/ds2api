@@ -35,6 +35,7 @@ async function fetchStreamPrepare(req, rawBody) {
   const url = buildInternalGoURL(req);
   url.searchParams.set('__stream_prepare', '1');
 
+  const t0 = Date.now();
   const upstream = await fetch(url.toString(), {
     method: 'POST',
     headers: buildInternalGoHeaders(req, { withInternalToken: true, withContentType: true }),
@@ -42,6 +43,7 @@ async function fetchStreamPrepare(req, rawBody) {
   });
 
   const text = await upstream.text();
+  console.log('[perf] internal fetchStreamPrepare HTTP', { duration_ms: Date.now() - t0, status: upstream.status });
   let body = {};
   try {
     body = JSON.parse(text || '{}');
@@ -62,6 +64,7 @@ async function fetchStreamPow(req, leaseID) {
   const url = buildInternalGoURL(req);
   url.searchParams.set('__stream_pow', '1');
 
+  const t0 = Date.now();
   const upstream = await fetch(url.toString(), {
     method: 'POST',
     headers: buildInternalGoHeaders(req, { withInternalToken: true, withContentType: true }),
@@ -69,6 +72,7 @@ async function fetchStreamPow(req, leaseID) {
   });
 
   const text = await upstream.text();
+  console.log('[perf] internal fetchStreamPow HTTP', { duration_ms: Date.now() - t0, status: upstream.status });
   let body = {};
   try {
     body = JSON.parse(text || '{}');
@@ -167,6 +171,7 @@ async function releaseStreamLease(req, leaseID) {
   url.searchParams.set('__stream_release', '1');
   const body = Buffer.from(JSON.stringify({ lease_id: leaseID }));
 
+  const t0 = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 1500);
   try {
@@ -176,6 +181,7 @@ async function releaseStreamLease(req, leaseID) {
       body,
       signal: controller.signal,
     });
+    console.log('[perf] internal releaseStreamLease HTTP', { duration_ms: Date.now() - t0 });
   } finally {
     clearTimeout(timeout);
   }

@@ -18,6 +18,7 @@ import (
 )
 
 func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Request) {
+	t0 := time.Now()
 	if !config.IsVercel() {
 		http.NotFound(w, r)
 		return
@@ -31,6 +32,7 @@ func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Reque
 	}
 
 	a, err := h.Auth.Determine(r)
+	t_auth := time.Now()
 	if err != nil {
 		status := http.StatusUnauthorized
 		if err == auth.ErrNoAccount {
@@ -77,6 +79,7 @@ func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Reque
 	}
 
 	sessionID, err := h.DS.CreateSession(r.Context(), a, 3)
+	t_session := time.Now()
 	if err != nil {
 		if a.UseConfigToken {
 			writeOpenAIError(w, http.StatusUnauthorized, "Account token is invalid. Please re-login the account in admin.")
@@ -86,6 +89,7 @@ func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	powHeader, err := h.DS.GetPow(r.Context(), a, 3)
+	t_pow := time.Now()
 	if err != nil {
 		writeOpenAIError(w, http.StatusUnauthorized, "Failed to get PoW (invalid token or unknown error).")
 		return
@@ -102,6 +106,12 @@ func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	leased = true
+	config.Logger.Info("[perf] vercel stream prepare",
+		"total_ms", time.Since(t0).Milliseconds(),
+		"auth_ms", t_auth.Sub(t0).Milliseconds(),
+		"session_ms", t_session.Sub(t_auth).Milliseconds(),
+		"pow_ms", t_pow.Sub(t_session).Milliseconds(),
+	)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"session_id":       sessionID,
 		"lease_id":         leaseID,
@@ -117,6 +127,7 @@ func (h *Handler) handleVercelStreamPrepare(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *Handler) handleVercelStreamRelease(w http.ResponseWriter, r *http.Request) {
+	t0 := time.Now()
 	if !config.IsVercel() {
 		http.NotFound(w, r)
 		return
@@ -144,10 +155,12 @@ func (h *Handler) handleVercelStreamRelease(w http.ResponseWriter, r *http.Reque
 		writeOpenAIError(w, http.StatusNotFound, "stream lease not found")
 		return
 	}
+	config.Logger.Info("[perf] vercel stream release", "total_ms", time.Since(t0).Milliseconds())
 	writeJSON(w, http.StatusOK, map[string]any{"success": true})
 }
 
 func (h *Handler) handleVercelStreamPow(w http.ResponseWriter, r *http.Request) {
+	t0 := time.Now()
 	if !config.IsVercel() {
 		http.NotFound(w, r)
 		return
@@ -180,6 +193,7 @@ func (h *Handler) handleVercelStreamPow(w http.ResponseWriter, r *http.Request) 
 		writeOpenAIError(w, http.StatusInternalServerError, "Failed to get PoW.")
 		return
 	}
+	config.Logger.Info("[perf] vercel stream pow", "total_ms", time.Since(t0).Milliseconds())
 	writeJSON(w, http.StatusOK, map[string]any{
 		"pow_header": powHeader,
 	})

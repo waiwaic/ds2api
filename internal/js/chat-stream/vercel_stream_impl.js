@@ -39,7 +39,10 @@ const EMPTY_OUTPUT_RETRY_MAX_ATTEMPTS = 1;
 const AUTO_CONTINUE_MAX_ROUNDS = 8;
 
 async function handleVercelStream(req, res, rawBody, payload) {
+  const t0 = Date.now();
+  const t_prep = Date.now();
   const prep = await fetchStreamPrepare(req, rawBody);
+  console.log('[perf] fetchStreamPrepare', { duration_ms: Date.now() - t_prep, total_ms: Date.now() - t0 });
   if (!prep.ok) {
     relayPreparedFailure(res, prep);
     return;
@@ -145,7 +148,9 @@ async function handleVercelStream(req, res, rawBody, payload) {
       }, powHeader);
     };
 
+    const t_deepseek = Date.now();
     let completionRes = await fetchCompletion(completionPayload);
+    console.log('[perf] DeepSeek first-byte', { duration_ms: Date.now() - t_deepseek, total_ms: Date.now() - t0 });
     if (completionRes === null) {
       return;
     }
@@ -392,8 +397,10 @@ async function handleVercelStream(req, res, rawBody, payload) {
         }
 
         if (shouldAutoContinue(continueState) && continueRounds < AUTO_CONTINUE_MAX_ROUNDS) {
+          const t_continue = Date.now();
           continueRounds += 1;
           const nextRes = await fetchContinue(continueState.responseMessageID);
+          console.log('[perf] auto-continue', { round: continueRounds, duration_ms: Date.now() - t_continue, total_ms: Date.now() - t0 });
           if (nextRes === null) {
             return { terminal: true, retryable: false };
           }
@@ -448,9 +455,11 @@ async function handleVercelStream(req, res, rawBody, payload) {
       }
     }
   } finally {
+    const t_release = Date.now();
     req.removeListener('aborted', onReqAborted);
     res.removeListener('close', onResClose);
     await releaseLease();
+    console.log('[perf] TOTAL request', { total_ms: Date.now() - t0, release_ms: Date.now() - t_release });
   }
 }
 
