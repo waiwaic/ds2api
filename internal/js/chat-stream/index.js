@@ -40,6 +40,7 @@ const {
 } = require('./dedupe');
 
 async function handler(req, res) {
+  console.log("[DIAG] Node.js entry reached");
   setCorsHeaders(res, req);
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
