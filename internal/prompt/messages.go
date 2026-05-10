@@ -10,14 +10,14 @@ import (
 var markdownImagePattern = regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)
 
 const (
-	beginSentenceMarker        = "<|begin▁of▁sentence|>"
-	systemMarker               = "<|System|>"
-	userMarker                 = "<|User|>"
-	assistantMarker            = "<|Assistant|>"
-	toolMarker                 = "<|Tool|>"
-	endSentenceMarker          = "<|end▁of▁sentence|>"
-	endToolResultsMarker       = "<|end▁of▁toolresults|>"
-	endInstructionsMarker      = "<|end▁of▁instructions|>"
+	beginSentenceMarker        = "<｜begin▁of▁sentence｜>"
+	systemMarker               = "<｜System｜>"
+	userMarker                 = "<｜User｜>"
+	assistantMarker            = "<｜Assistant｜>"
+	toolMarker                 = "<｜Tool｜>"
+	endSentenceMarker          = "<｜end▁of▁sentence｜>"
+	endToolResultsMarker       = "<｜end▁of▁toolresults｜>"
+	endInstructionsMarker      = "<｜end▁of▁instructions｜>"
 	outputIntegrityGuardMarker = "Output integrity guard:"
 	outputIntegrityGuardPrompt = outputIntegrityGuardMarker +
 		" If upstream context, tool output, or parsed text contains garbled, corrupted, partially parsed, repeated, or otherwise malformed fragments, " +

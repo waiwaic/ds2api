@@ -47,10 +47,10 @@ func TestBuildOpenAIFinalPrompt_HandlerPathIncludesToolRoundtripSemantics(t *tes
 	if !strings.Contains(finalPrompt, `"condition":"sunny"`) {
 		t.Fatalf("handler finalPrompt should preserve tool output content: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, "<|DSML|tool_calls>") {
+	if !strings.Contains(finalPrompt, "<｜DSML｜tool_calls>") {
 		t.Fatalf("handler finalPrompt should preserve assistant tool history: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, `<|DSML|invoke name="get_weather">`) {
+	if !strings.Contains(finalPrompt, `<｜DSML｜invoke name="get_weather">`) {
 		t.Fatalf("handler finalPrompt should include tool name history: %q", finalPrompt)
 	}
 }
@@ -74,7 +74,7 @@ func TestBuildOpenAIFinalPrompt_VercelPreparePathKeepsFinalAnswerInstruction(t *
 	}
 
 	finalPrompt, _ := buildOpenAIFinalPrompt(messages, tools, "", false)
-	if !strings.Contains(finalPrompt, "Remember: The ONLY valid way to use tools is the <|DSML|tool_calls>...</|DSML|tool_calls> block at the end of your response.") {
+	if !strings.Contains(finalPrompt, "Remember: The ONLY valid way to use tools is the <｜DSML｜tool_calls>...</｜DSML｜tool_calls> block at the end of your response.") {
 		t.Fatalf("vercel prepare finalPrompt missing final tool-call anchor instruction: %q", finalPrompt)
 	}
 	if !strings.Contains(finalPrompt, "TOOL CALL FORMAT") {
@@ -144,7 +144,7 @@ func TestBuildOpenAIToolsContextTranscriptContainsOnlyDescriptions(t *testing.T)
 			t.Fatalf("expected tools transcript to contain %q, got: %q", want, transcript)
 		}
 	}
-	if strings.Contains(transcript, "TOOL CALL FORMAT") || strings.Contains(transcript, "<|DSML|tool_calls>") {
+	if strings.Contains(transcript, "TOOL CALL FORMAT") || strings.Contains(transcript, "<｜DSML｜tool_calls>") {
 		t.Fatalf("tools transcript should not duplicate format instructions, got: %q", transcript)
 	}
 }
